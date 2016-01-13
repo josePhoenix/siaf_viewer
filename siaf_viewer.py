@@ -15,9 +15,6 @@ except ImportError:
 
 import matplotlib
 matplotlib.use('TkAgg')
-# try:
-    # import seaborn as sb
-# except ImportError:
 from matplotlib import pyplot as plt
 plt.style.use('ggplot')
 
@@ -107,7 +104,7 @@ class SIAFViewer(object):
         # plot panel
         self.plotframe = ttk.Frame(self.main)
         self.plotframe.grid(column=1, row=0, sticky=(N, W, E, S))
-        
+
         self.figure = Figure(figsize=(10, 5), dpi=72)
         self.ax = self.figure.add_subplot(1, 1, 1)
         self.ax.set_aspect('equal')
@@ -126,7 +123,7 @@ class SIAFViewer(object):
             key_press_handler(event, self._canvas, self._toolbar)
 
         self._canvas.mpl_connect('key_press_event', on_key_event)
-        
+
     def _construct_filter(self):
         # filter / tree panel
         self.filterframe = ttk.Frame(self.main)
@@ -138,13 +135,13 @@ class SIAFViewer(object):
         filter_label.grid(column=0, row=0, sticky=(N, W))
         self.filter_entry = ttk.Entry(self.filterframe, textvariable=self.filter_value)
         self.filter_entry.grid(column=1, row=0, sticky=(N, W, E, S))
-        
+
         filter_button = ttk.Button(self.filterframe, text="Filter", command=self.apply_filter)
         filter_button.grid(column=2, row=0, sticky=(N, E))
-        
+
         clear_button = ttk.Button(self.filterframe, text="Clear", command=self.clear_filter)
         clear_button.grid(column=2, row=1, sticky=(N, E))
-        
+
 
         filter_behavior_label = ttk.Label(self.filterframe, text="Show:")
         filter_behavior_label.grid(column=0, row=1)
@@ -172,10 +169,10 @@ class SIAFViewer(object):
         self.instrument_tree.grid(column=0, row=2, sticky=(N, W, E, S), columnspan=3)
         self._load_instruments()
         self.filterframe.rowconfigure(2, weight=1)
-        
+
         info = ttk.Label(self.filterframe, text='Hold control and click to select multiple.\nHold shift and click to select ranges.')
         info.grid(column=0, row=3, columnspan=3)
-        
+
         self.show_labels = BooleanVar(value=False)
         self.show_labels_checkbox = ttk.Checkbutton(
             self.filterframe,
@@ -192,14 +189,14 @@ class SIAFViewer(object):
         # ensure resizing happens:
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
-        
+
         self.main = ttk.Frame(self.root)
         self.main.grid(column=0, row=0, sticky=(N, W, E, S))
-        
+
         self._construct_plot()
-        
+
         self._construct_filter()
-        
+
         # massage the gui library a bit
         for child in self.main.winfo_children():
             child.grid_configure(padx=5, pady=5)
@@ -214,9 +211,9 @@ class SIAFViewer(object):
 
     def _load_instruments(self):
         self.data_path = os.environ.get('WEBBPSF_PATH')
-        
+
         self.siaf_lookup = {}
-        
+
         # Every instrument is a unique snowflake, so load them one by one
         self.siaf_lookup['NIRCam'] = self._load_instrument('NIRCam')
         # NIRCam
@@ -224,7 +221,7 @@ class SIAFViewer(object):
         #    - NRCA1 .. 5
         #  - NRCB
         #    - NRCB1 .. 5
-        
+
         self.instrument_tree.insert('', 'end', iid='NIRCam', text='NIRCam')
         self.instrument_tree.insert('NIRCam', 'end', iid='NRCA', text='NRCA')
         a_segments = ('NRCA1', 'NRCA2', 'NRCA3', 'NRCA4', 'NRCA5')
@@ -235,7 +232,7 @@ class SIAFViewer(object):
         b_segments = ('NRCB1', 'NRCB2', 'NRCB3', 'NRCB4', 'NRCB5')
         for segment in b_segments:
             self.instrument_tree.insert('NRCB', 'end', iid=segment, text=segment)
-        
+
         for aper in sorted(self.siaf_lookup['NIRCam'].apernames):
             if 'NRCA' in aper and not 'NRCALL' in aper:
                 if aper[:5] in a_segments:
@@ -249,7 +246,7 @@ class SIAFViewer(object):
                     self.instrument_tree.insert('NRCB', 'end', iid=aper, text=aper)
             else:
                 self.instrument_tree.insert('NIRCam', 'end', iid=aper, text=aper)
-        
+
         # MIRI
         #  - MIRIM
         #  - MIRIFU
@@ -257,7 +254,7 @@ class SIAFViewer(object):
         self.instrument_tree.insert('', 'end', iid='MIRI', text='MIRI')
         self.instrument_tree.insert('MIRI', 'end', iid='MIRIFU', text='MIRIFU')
         self.instrument_tree.insert('MIRI', 'end', iid='MIRIM', text='MIRIM')
-        
+
         for aper in sorted(self.siaf_lookup['MIRI'].apernames):
             if 'MIRIFU' in aper:
                 self.instrument_tree.insert('MIRIFU', 'end', iid=aper, text=aper)
