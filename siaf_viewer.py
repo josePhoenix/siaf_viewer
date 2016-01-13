@@ -2,7 +2,7 @@
 from __future__ import print_function, division
 import glob
 import os
-from os.path import join
+from os.path import join, exists
 
 from pprint import pformat, pprint
 
@@ -194,7 +194,6 @@ class SIAFViewer(object):
         self.main.grid(column=0, row=0, sticky=(N, W, E, S))
 
         self._construct_plot()
-
         self._construct_filter()
 
         # massage the gui library a bit
@@ -211,7 +210,6 @@ class SIAFViewer(object):
 
     def _load_instruments(self):
         self.data_path = os.environ.get('WEBBPSF_PATH')
-
         self.siaf_lookup = {}
 
         # Every instrument is a unique snowflake, so load them one by one
