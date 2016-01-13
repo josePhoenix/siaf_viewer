@@ -27,7 +27,11 @@ from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
 import numpy as np
 
-# from jwxml import SIAF
+# before importing WebbPSF, ensure the environment variable is set
+if os.environ.get('WEBBPSF_PATH') is None:
+    assert exists('/grp/jwst/ote/webbpsf-data')
+    os.environ['WEBBPSF_PATH'] = '/grp/jwst/ote/webbpsf-data'
+
 from webbpsf.jwxml import SIAF
 
 class SIAFViewer(object):
@@ -210,9 +214,6 @@ class SIAFViewer(object):
 
     def _load_instruments(self):
         self.data_path = os.environ.get('WEBBPSF_PATH')
-        if self.data_path is None:
-            assert exists('/grp/jwst/ote/webbpsf-data')
-            data_path = '/grp/jwst/ote/webbpsf-data'
         
         self.siaf_lookup = {}
         
