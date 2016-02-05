@@ -29,7 +29,7 @@ if os.environ.get('WEBBPSF_PATH') is None:
     assert exists('/grp/jwst/ote/webbpsf-data')
     os.environ['WEBBPSF_PATH'] = '/grp/jwst/ote/webbpsf-data'
 
-from webbpsf.jwxml import SIAF
+from vendor.jwxml import SIAF
 
 class SIAFViewer(object):
     instruments = ['NIRCam', 'NIRSpec', 'NIRISS', 'MIRI', 'FGS']
@@ -272,7 +272,3 @@ class SIAFViewer(object):
             return
         else:
             self.redraw()
-
-if __name__ == "__main__":
-    app = SIAFViewer()
-    app.start()
