@@ -2,7 +2,7 @@
 from __future__ import print_function, division
 import argparse
 import os
-from os.path import join
+from os.path import join, exists
 import glob
 
 # before importing, ensure the environment variable is set
