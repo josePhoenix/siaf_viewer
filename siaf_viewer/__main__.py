@@ -4,6 +4,10 @@ import argparse
 import os
 from os.path import join, exists
 import glob
+import matplotlib
+matplotlib.use('TkAgg')
+from matplotlib import pyplot as plt
+plt.style.use('ggplot')
 
 # before importing, ensure the environment variable is set
 if os.environ.get('WEBBPSF_PATH') is None:

@@ -16,7 +16,6 @@ except ImportError:
 import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
-plt.style.use('ggplot')
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 # implement the default mpl key bindings
