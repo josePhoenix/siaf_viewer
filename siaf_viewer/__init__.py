@@ -24,23 +24,29 @@ from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
 import numpy as np
 
-# before importing WebbPSF, ensure the environment variable is set
-if os.environ.get('WEBBPSF_PATH') is None:
-    assert exists('/grp/jwst/ote/webbpsf-data')
-    os.environ['WEBBPSF_PATH'] = '/grp/jwst/ote/webbpsf-data'
 
 from vendor.jwxml import SIAF
 
+NIRCAM = 'NIRCam'
+NIRSPEC = 'NIRSpec'
+NIRISS = 'NIRISS'
+MIRI = 'MIRI'
+FGS = 'FGS'
+
 class SIAFViewer(object):
-    instruments = ['NIRCam', 'NIRSpec', 'NIRISS', 'MIRI', 'FGS']
+    instruments = [NIRCAM, NIRSPEC, NIRISS, MIRI, FGS]
+    instrument_filepaths = None
     FILTER_SELECTED, FILTER_ALL = 1, 2
 
-    def __init__(self):
+    def __init__(self, instrument_filepaths):
         self.root = Tk()
         self.root.title("SIAF Viewer")
+        self.instrument_filepaths = instrument_filepaths
+
         def close_app():
             self.root.quit()
             self.root.destroy()
+
         self.root.protocol("WM_DELETE_WINDOW", close_app)
         self._construct()
         self.redraw()
@@ -72,7 +78,7 @@ class SIAFViewer(object):
     def apply_filter(self):
         pattern = self.filter_value.get()
         # print("Pattern: {}".format(pattern))
-        # pprint(self.instrument_tree.get_children('NIRCam'))
+        # pprint(self.instrument_tree.get_children(NIRCAM))
 
         def traverse_items(base=''):
             # recurse down the tree structure to find all matches
@@ -204,34 +210,35 @@ class SIAFViewer(object):
         self.main.rowconfigure(0, weight=1)
 
     def _load_instrument(self, instrument):
-        siaf_xml = glob.glob(join(self.data_path, instrument, '{}_SIAF.xml'.format(instrument)))
-        assert len(siaf_xml) == 1
-        return SIAF(instr=instrument, filename=siaf_xml[0])
+        print("Loading {} from {}".format(instrument, self.instrument_filepaths[instrument]))
+        return SIAF(
+            instr=instrument,
+            filename=self.instrument_filepaths[instrument]
+        )
 
     def _load_instruments(self):
-        self.data_path = os.environ.get('WEBBPSF_PATH')
         self.siaf_lookup = {}
 
         # Every instrument is a unique snowflake, so load them one by one
-        self.siaf_lookup['NIRCam'] = self._load_instrument('NIRCam')
+        self.siaf_lookup[NIRCAM] = self._load_instrument(NIRCAM)
         # NIRCam
         #  - NRCA
         #    - NRCA1 .. 5
         #  - NRCB
         #    - NRCB1 .. 5
 
-        self.instrument_tree.insert('', 'end', iid='NIRCam', text='NIRCam')
-        self.instrument_tree.insert('NIRCam', 'end', iid='NRCA', text='NRCA')
+        self.instrument_tree.insert('', 'end', iid=NIRCAM, text=NIRCAM)
+        self.instrument_tree.insert(NIRCAM, 'end', iid='NRCA', text='NRCA')
         a_segments = ('NRCA1', 'NRCA2', 'NRCA3', 'NRCA4', 'NRCA5')
         for segment in a_segments:
             self.instrument_tree.insert('NRCA', 'end', iid=segment, text=segment)
 
-        self.instrument_tree.insert('NIRCam', 'end', iid='NRCB', text='NRCB')
+        self.instrument_tree.insert(NIRCAM, 'end', iid='NRCB', text='NRCB')
         b_segments = ('NRCB1', 'NRCB2', 'NRCB3', 'NRCB4', 'NRCB5')
         for segment in b_segments:
             self.instrument_tree.insert('NRCB', 'end', iid=segment, text=segment)
 
-        for aper in sorted(self.siaf_lookup['NIRCam'].apernames):
+        for aper in sorted(self.siaf_lookup[NIRCAM].apernames):
             if 'NRCA' in aper and not 'NRCALL' in aper:
                 if aper[:5] in a_segments:
                     self.instrument_tree.insert(aper[:5], 'end', iid=aper, text=aper)
@@ -243,23 +250,23 @@ class SIAFViewer(object):
                 else:
                     self.instrument_tree.insert('NRCB', 'end', iid=aper, text=aper)
             else:
-                self.instrument_tree.insert('NIRCam', 'end', iid=aper, text=aper)
+                self.instrument_tree.insert(NIRCAM, 'end', iid=aper, text=aper)
 
         # MIRI
         #  - MIRIM
         #  - MIRIFU
-        self.siaf_lookup['MIRI'] = self._load_instrument('MIRI')
-        self.instrument_tree.insert('', 'end', iid='MIRI', text='MIRI')
-        self.instrument_tree.insert('MIRI', 'end', iid='MIRIFU', text='MIRIFU')
-        self.instrument_tree.insert('MIRI', 'end', iid='MIRIM', text='MIRIM')
+        self.siaf_lookup[MIRI] = self._load_instrument(MIRI)
+        self.instrument_tree.insert('', 'end', iid=MIRI, text=MIRI)
+        self.instrument_tree.insert(MIRI, 'end', iid='MIRIFU', text='MIRIFU')
+        self.instrument_tree.insert(MIRI, 'end', iid='MIRIM', text='MIRIM')
 
-        for aper in sorted(self.siaf_lookup['MIRI'].apernames):
+        for aper in sorted(self.siaf_lookup[MIRI].apernames):
             if 'MIRIFU' in aper:
                 self.instrument_tree.insert('MIRIFU', 'end', iid=aper, text=aper)
             elif 'MIRIM' in aper:
                 self.instrument_tree.insert('MIRIM', 'end', iid=aper, text=aper)
 
-        for instrkey in (a for a in self.instruments if a != 'NIRCam' and a != 'MIRI'):  #FIXME
+        for instrkey in (a for a in self.instruments if a != NIRCAM and a != MIRI):
             self.siaf_lookup[instrkey] = self._load_instrument(instrkey)
             self.instrument_tree.insert('', 'end', iid=instrkey, text=instrkey)
             for aper in sorted(self.siaf_lookup[instrkey].apernames):
