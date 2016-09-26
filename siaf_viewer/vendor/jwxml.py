@@ -661,11 +661,11 @@ class SIAF(object):
 
         # which list of apertures to iterate over?
         if subarrays:
-            iterable = self.apertures.itervalues
+            iterable = self.apertures.values()
         else:
-            iterable = self._getFullApertures
+            iterable = self._getFullApertures()
 
-        for ap in iterable():
+        for ap in iterable:
             if names is not None:
                 if ap.AperName not in names: continue
 

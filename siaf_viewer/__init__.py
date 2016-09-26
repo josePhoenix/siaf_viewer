@@ -70,6 +70,7 @@ class SIAFViewer(object):
                     # print('item', item, 'instrument', instrument)
                     if item in siaf.apernames:
                         siaf[item].plot(frame='Tel', ax=self.ax, label=show_labels)
+                        self.ax.scatter(siaf[item].V2Ref, siaf[item].V3Ref)
         self.ax.set_xlabel('V2 [arcsec]')
         self.ax.set_ylabel('V3 [arcsec]')
         self._canvas.show()
