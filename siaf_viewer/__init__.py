@@ -23,14 +23,16 @@ from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
 import numpy as np
 
-
-from vendor.jwxml import SIAF
+from jwxml import SIAF
 
 NIRCAM = 'NIRCam'
 NIRSPEC = 'NIRSpec'
 NIRISS = 'NIRISS'
 MIRI = 'MIRI'
 FGS = 'FGS'
+
+# AperType
+TRANSFORM = 'TRANSFORM'
 
 class SIAFViewer(object):
     instruments = [NIRCAM, NIRSPEC, NIRISS, MIRI, FGS]
@@ -61,6 +63,8 @@ class SIAFViewer(object):
         if mode == self.FILTER_ALL:
             for instrument, siaf in self.siaf_lookup.items():
                 for item in siaf.apernames:
+                    if siaf[item].AperType == TRANSFORM:
+                        continue
                     siaf[item].plot(frame='Tel', ax=self.ax, label=show_labels)
         elif mode == self.FILTER_SELECTED:
             # hacky/slow way to go from selected IDs back to SIAF instances
@@ -210,11 +214,12 @@ class SIAFViewer(object):
         self.main.rowconfigure(0, weight=1)
 
     def _load_instrument(self, instrument):
-        print("Loading {} from {}".format(instrument, self.instrument_filepaths[instrument]))
-        return SIAF(
+        siaf = SIAF(
             instr=instrument,
             filename=self.instrument_filepaths[instrument]
         )
+        print("Loaded {} from {}".format(instrument, siaf.filename))
+        return siaf
 
     def _load_instruments(self):
         self.siaf_lookup = {}
@@ -266,7 +271,16 @@ class SIAFViewer(object):
             elif 'MIRIM' in aper:
                 self.instrument_tree.insert('MIRIM', 'end', iid=aper, text=aper)
 
-        for instrkey in (a for a in self.instruments if a != NIRCAM and a != MIRI):
+        # NIRSpec
+        # (special: ignore AperType == TRANSFORM)
+        self.siaf_lookup[NIRSPEC] = self._load_instrument(NIRSPEC)
+        self.instrument_tree.insert('', 'end', iid=NIRSPEC, text=NIRSPEC)
+        for aper in sorted(self.siaf_lookup[NIRSPEC].apernames):
+            if self.siaf_lookup[NIRSPEC][aper].AperType == TRANSFORM:
+                continue
+            self.instrument_tree.insert(NIRSPEC, 'end', iid=aper, text=aper)
+
+        for instrkey in [NIRISS, FGS]:
             self.siaf_lookup[instrkey] = self._load_instrument(instrkey)
             self.instrument_tree.insert('', 'end', iid=instrkey, text=instrkey)
             for aper in sorted(self.siaf_lookup[instrkey].apernames):
